@@ -1,0 +1,14 @@
+name: nabeel pipeline
+
+on:
+  push:
+
+jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup docker
+        uses: docker/setup-builderx-action@v4
