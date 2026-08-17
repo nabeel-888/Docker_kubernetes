@@ -1,0 +1,55 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: notes-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+    # No "ports:" mapping needed for mongo itself — only backend and
+    # mongo-express need to reach it, and they can do so over the
+    # internal docker network using the service name "mongo" as the host.
+
+  mongo-express:
+    image: mongo-express:1.0
+    container_name: notes-mongo-express
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD}
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGOEXPRESS_USER}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGOEXPRESS_PASSWORD}
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    container_name: notes-backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      PORT: 3000
+      # "mongo" here is the service name above — Docker's internal DNS
+      # resolves it to that container's IP on the shared network.
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo:27017/notesdb?authSource=admin
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
