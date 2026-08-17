@@ -1,5 +1,5 @@
-name: nabeel pipeline
-
+name: nabeel pipeline CI
+ 
 on:
   push:
 

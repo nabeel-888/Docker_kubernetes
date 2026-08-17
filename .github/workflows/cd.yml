@@ -1,0 +1,24 @@
+name: nabeel pipeine code
+
+on:
+    workflow_run:
+      workflows: ["nabeel pipeline CI"]
+      types:
+        - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Execute remote ssh
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: cd ~/Docker_kubernetes
+                  git pull origin main
+                  docker compose pull
+                  docker compose up -d
